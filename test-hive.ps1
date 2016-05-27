@@ -78,6 +78,12 @@ Function Get-TargetTemperature
 	return Invoke-RestMethod -Uri $uri -UserAgent $useragent -WebSession $global:Websession
 }
 
+Function Get-Temperature
+{
+	$uri = $baseuri + "/users/$global:Username/widgets/temperature"
+	return Invoke-RestMethod -Uri $uri -UserAgent $useragent -WebSession $global:Websession
+}
+
 Function Set-TargetTemperature
 {
 	[CmdletBinding()] param (
@@ -104,13 +110,54 @@ Function Get-TemperatureHistory
 	$histbody = @{}
 	$histbody.Add("period", $Period)
 	
-	$uri = $baseuri +"/users/pauldurbin69@gmail.com/widgets/temperature/$deviceId/history"
+	$uri = $baseuri +"/users/$global:Username/widgets/temperature/$deviceId/history"
 	
 	return Invoke-RestMethod -Uri $uri -UserAgent $useragent -WebSession $global:Websession -Body $histbody
 }
 
+Function Get-Settings
+{
+	$uri = $baseuri +"/users/$global:Username/settings"
+
+	return Invoke-RestMethod -Uri $uri -UserAgent $useragent -WebSession $global:Websession
+}
+
+Function Get-Hub
+{
+	$uri = $baseuri +"/users/$global:Username/hubs"
+	return Invoke-RestMethod -Uri $uri -UserAgent $useragent -WebSession $global:Websession
+}
+
+Function Get-HubData
+{
+	$uri = $baseuri +"/users/$global:Username/hubs/$global:HubId"
+	$data = Invoke-RestMethod -Uri $uri -UserAgent $useragent -WebSession $global:Websession
+	
+	$replace = ',"upTime":533207,'
+#	powershell can convert duplicate property differebt only by case
+	$data = $data.Replace("upTime", "upTime2")
+	return ConvertFrom-Json $data
+}
+
+Function Get-Devices
+{
+	$uri = $baseuri + "/users/$global:Username/hubs/$global:HubId/devices?detail=versionInfo+channelValues"
+	return Invoke-RestMethod -Uri $uri -UserAgent $useragent -WebSession $global:Websession
+}
+
+
+
 Start-HiveSession -Username "[YOUR USER NAME HERE]" -Password "[YOUR PASSWORD HERE]"
 
+Get-Hub
+
+ Get-HubData
+
+$t = Get-Temperature
+$t
+$t.outside.weather
+
+Get-Settings
 
 Set-TargetTemperature -Temperature 1
 
